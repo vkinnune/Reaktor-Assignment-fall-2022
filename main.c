@@ -49,7 +49,7 @@ t_package	*allocate_packages(char *buf, size_t *package_count)
 	return (packages);
 }
 
-char	*parse_package(char *p, size_t &type)
+char	*parse_package(char *p, size_t *type)
 {
 	char 	cmp[6][15] = {"name", "version", "description", "category", "optional", "python-version"};
 	size_t	i;
@@ -76,9 +76,21 @@ char	*parse_package(char *p, size_t &type)
 	return (0);
 }
 
-void	format_data(char *p, size_t type)
+void	format_data(char *p, size_t type, t_package *packages)
 {
-
+	char	*save_p;
+	int	i;
+	switch (type)
+	{
+		case name:
+			p++;
+			save_p = p;
+			for (i = 0; *p != '"'; i++)
+				p++;
+			packages->name = (char *)malloc(sizeof(char) * i);
+			strncpy(packages->name, save_p, i);
+			break;
+	}
 }
 
 void	parsing(char *buf, size_t package_count, t_package *packages)
@@ -90,8 +102,11 @@ void	parsing(char *buf, size_t package_count, t_package *packages)
 	{
 		if (!memcmp("[[package]]", p, 11))
 		{
-			p = parse_package(p, &type);
-			format_data(p, type);
+			for (int i = 0; i != 6; i++)
+			{
+				p = parse_package(p, &type);
+				format_data(p, type, &packages[package_index]);
+			}
 			package_index++;
 		}
 		else if (!memcmp("[package.extras]", p, 16))

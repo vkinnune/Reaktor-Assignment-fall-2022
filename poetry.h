@@ -11,3 +11,13 @@ typedef struct s_package {
 	bool	optional;
 }	t_package;
 
+enum	e_package_content
+{
+	name,
+	version,
+	description,
+	category,
+	optional,
+	python_version
+};
+
