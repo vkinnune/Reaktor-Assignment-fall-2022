@@ -1,18 +1,10 @@
-#include "poetry.h"
-#include <stdio.h>
-#include <string.h>
+#include "poetry_parser.h"
 
 #define READ_SIZE 64
 
-void	crash(char *str)
-{
-    printf("%s\n", str);
-    exit(-1);
-}
-
 char	*reading(int fd)
 {
-	size_t	read_bytes = 0;
+	int	read_bytes = 0;
 	size_t	text_size = 0;
 	size_t	allocated = READ_SIZE;
 	char	*buf = (char *)malloc(sizeof(char) * READ_SIZE);
@@ -53,7 +45,7 @@ t_package	*allocate_packages(char *buf, size_t *package_count)
 	return (packages);
 }
 
-char	*parse_package(char *p, size_t *type, size_t x)
+char	*parse_package(char *p, size_t *type, size_t order_index)
 {
 	char 	cmp[6][15] = {"name", "version", "description", "category", "optional", "python-version"};
 	size_t	i;
@@ -65,7 +57,7 @@ char	*parse_package(char *p, size_t *type, size_t x)
 				break ;
 		if (i < 6)
 		{
-			if (x != i)
+			if (order_index != i)
 				crash("Error");
 			while (1)
 			{
@@ -119,12 +111,12 @@ void	format_data(char *p, size_t type, t_package *packages)
 
 int	search_package(char *name, size_t len, t_package *packages, size_t package_count)
 {
-	for (int i = 0; i != package_count; i++)
+	for (size_t i = 0; i != package_count; i++)
 	{
 		if (!memcmp(name, packages[i].name, len))
 			return (i);
 	}
-	return (0);
+	return (-1);
 }
 
 t_package	*add_package(t_package *packages, size_t package_count, size_t len, char *name)
@@ -140,7 +132,7 @@ char	*parse_extras(char *p, t_package **packages, size_t package_index, size_t *
 {
 	char	*save_p;
 	char	*temp_p;
-	size_t	index;
+	int	index;
 	size_t	len;
 
 	p = strchr(p, '"');
@@ -152,14 +144,14 @@ char	*parse_extras(char *p, t_package **packages, size_t package_index, size_t *
 		p = temp_p;
 	len = p - save_p;
 	index = search_package(save_p, len, *packages, *package_count);
-	if (!index)
+	if (index == -1)
 	{
 		*packages = add_package(*packages, *package_count, len, save_p);
 		index = *package_count;
 		(*package_count)++;
 	}
 	(*packages)[package_index].extras = realloc((*packages)[package_index].extras, sizeof(size_t) * ((*packages)[package_index].extras_size + 1));
-	(*packages)[package_index].extras[(*packages)[package_index].extras_size] = index;
+	(*packages)[package_index].extras[(*packages)[package_index].extras_size] = (size_t)index;
 	(*packages)[package_index].extras_size++;
 	return (temp_p + 1);
 }
@@ -168,7 +160,7 @@ char	*parse_dependencies(char *p, t_package **packages, size_t package_index, si
 {
 	char	*save_p;
 	char	*temp_p;
-	size_t	index;
+	int	index;
 	size_t	len;
 
 	save_p = p;
@@ -178,14 +170,14 @@ char	*parse_dependencies(char *p, t_package **packages, size_t package_index, si
 		p = temp_p;
 	len = p - save_p;
 	index = search_package(save_p, len, *packages, *package_count);
-	if (!index)
+	if (index == -1)
 	{
 		*packages = add_package(*packages, *package_count, len, save_p);
 		index = *package_count;
 		(*package_count)++;
 	}
 	(*packages)[package_index].dependencies = realloc((*packages)[package_index].dependencies, sizeof(size_t) * ((*packages)[package_index].dependencies_size + 1));
-	(*packages)[package_index].dependencies[(*packages)[package_index].dependencies_size] = index;
+	(*packages)[package_index].dependencies[(*packages)[package_index].dependencies_size] = (size_t)index;
 	(*packages)[package_index].dependencies_size++;
 	return (temp_p);
 }
@@ -238,134 +230,7 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 				p++;
 			}
 		}
-		/*
-		*/
 		p++;
 	}
-}
-
-size_t	clear_duplicates(size_t **real_dependencies, size_t *dependencies, size_t *extras, size_t dependencies_size, size_t extras_size)
-{
-	int	j;
-	size_t	real_size = dependencies_size;
-
-	*real_dependencies = (size_t *)malloc(sizeof(size_t) * (dependencies_size + extras_size));
-	memcpy(*real_dependencies, dependencies, sizeof(size_t) * dependencies_size);
-	for (int i = 0; i != extras_size; i++)
-	{
-		for (j = 0; j != real_size; j++)
-			if (extras[i] == (*real_dependencies)[j])
-				break ;
-		if (j == real_size)
-		{
-			(*real_dependencies)[real_size] = extras[i];
-			real_size++;
-		}
-	}
-	return (real_size);
-}
-
-void	print_out(size_t package_count, t_package *packages, size_t downloaded_packages, size_t *index_page)
-{
-	printf("<html><style> a:active { color: red } a { color: blue } body { font-family: Arial; display: flex } div { display: flex; min-width: 10vh } #content { display: flex; flex-wrap: wrap } #sidebar { max-height: 100vh; overflow-y: auto; margin: 10px 10px 10px 10px; min-width: 35vh; position: -webkit-sticky; position: sticky; top: 0; align-self: flex-start; } #text { padding-bottom: 10px; border-bottom: 1px solid black; width: 100%; flex-direction: column } h2 { } p { margin: initial; } </style><body>");
-	{ //generate clickable index in alphabetical order
-		printf("<div id=\"sidebar\">");
-		printf("<p>");
-		for (int i = 0; i != downloaded_packages; i++)
-		{
-			printf("<a href=\"#%s\">%s</a>", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].name);
-			if (i != downloaded_packages - 1)
-				printf(", ");
-
-		}
-		printf("</p></div>");
-	}
-	{ //generate the packages
-		printf("<div id=\"content\">");
-		for (int i = 0; i != downloaded_packages; i++)
-		{
-			size_t *dependencies = packages[index_page[i]].dependencies;
-			size_t *extras = packages[index_page[i]].extras;
-			size_t dependencies_size = packages[index_page[i]].dependencies_size;
-			size_t extras_size = packages[index_page[i]].extras_size;
-			size_t *real_dependencies;
-			size_t real_size;
-			printf("<div id=\"text\"><h2 id=\"%s\">%s</h2><p>%s</p>", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].description);
-			real_size = clear_duplicates(&real_dependencies, dependencies, extras, dependencies_size, extras_size);
-			if (real_size > 0)
-			{
-				printf("<h4>Dependencies</h4><p>");
-				for (int j = 0; j != real_size; j++) //TODO check if need to add link
-				{
-					if (real_dependencies[j] < downloaded_packages)
-						printf("<a href=\"#%s\">%s</a>, ", packages[real_dependencies[j]].name, packages[real_dependencies[j]].name);
-					else
-						printf("%s, ", packages[real_dependencies[j]].name);
-				}
-				printf("</p>");
-
-			}
-			printf("</div>");
-		}
-		printf("</div>");
-	}
-	printf("</body></html>");
-}
-
-void	create_index_page(size_t *index_page, size_t downloaded_packages, t_package *packages)
-{
-	size_t	i;
-
-	for (i = 0; i != downloaded_packages; i++)
-	{
-		index_page[i] = i;
-	}
-}
-
-/*
-   Parsing fills this following struct.
-   Package struct includes:
-	char	*name;
-	size_t	version;
-	char	*description;
-	char	*category;
-	bool	optional;
-	size_t	*dependencies;
-	size_t	dependencies_size;
-	size_t	*extras;
-	size_t	extras_size;
-   */
-
-int	main(int argc, char **argv)
-{
-	t_package	*packages;
-	char		*buf = 0;
-	int		fd;
-	size_t		package_count = 0;
-	size_t		*index_page;
-	size_t		downloaded_packages;
-
-	if (argc == 2)
-	{
-		fd = open(argv[1], O_RDONLY);
-		buf = reading(fd);
-		if (buf == 0)
-			crash("Error");
-		packages = allocate_packages(buf, &package_count);
-		index_page =  (size_t *)malloc(sizeof(size_t) * package_count);
-		downloaded_packages = package_count;
-		create_index_page(index_page, downloaded_packages, packages);
-		parsing(buf, &package_count, &packages);
-		print_out(package_count, packages, downloaded_packages, index_page);
-		/*
-		printf("%d\n", package_count);
-		for (int i = 0; i != package_count; i++)
-			printf("%s\n", packages[i].name);
-		magic();
-		*/
-	}
-	else
-		printf("No input\n");
-	return (0);
 }
 

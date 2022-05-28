@@ -2,12 +2,12 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
 
 typedef struct s_package {
 	char	*name;
-	size_t	version;
 	char	*description;
-	char	*category;
 	bool	optional;
 	size_t	*dependencies;
 	size_t	dependencies_size;
@@ -24,4 +24,9 @@ enum	e_package_content
 	optional,
 	python_version
 };
+
+char		*reading(int fd);
+t_package	*allocate_packages(char *buf, size_t *package_count);
+void		parsing(char *buf, size_t *package_count, t_package **packages);
+void		crash(char *str);
 
