@@ -9,6 +9,10 @@ typedef struct s_package {
 	char	*description;
 	char	*category;
 	bool	optional;
+	size_t	*dependencies;
+	size_t	dependencies_size;
+	size_t	*extras;
+	size_t	extras_size;
 }	t_package;
 
 enum	e_package_content
