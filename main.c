@@ -53,7 +53,7 @@ t_package	*allocate_packages(char *buf, size_t *package_count)
 	return (packages);
 }
 
-char	*parse_package(char *p, size_t *type)
+char	*parse_package(char *p, size_t *type, size_t x)
 {
 	char 	cmp[6][15] = {"name", "version", "description", "category", "optional", "python-version"};
 	size_t	i;
@@ -65,6 +65,8 @@ char	*parse_package(char *p, size_t *type)
 				break ;
 		if (i < 6)
 		{
+			if (x != i)
+				crash("Error");
 			while (1)
 			{
 				if (!memcmp(" = ", p, 3))
@@ -200,7 +202,7 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 		{
 			for (int i = 0; i != 6; i++)
 			{
-				p = parse_package(p, &type);
+				p = parse_package(p, &type, i);
 				format_data(p, type, &(*packages)[package_index]);
 			}
 			package_index++;
@@ -293,8 +295,13 @@ void	print_out(size_t package_count, t_package *packages, size_t downloaded_pack
 			if (real_size > 0)
 			{
 				printf("<h4>Dependencies</h4><p>");
-				for (int j = 0; j != real_size; j++)
-					printf("%s, ", packages[real_dependencies[j]].name);
+				for (int j = 0; j != real_size; j++) //TODO check if need to add link
+				{
+					if (real_dependencies[j] < downloaded_packages)
+						printf("<a href=\"#%s\">%s</a>, ", packages[real_dependencies[j]].name, packages[real_dependencies[j]].name);
+					else
+						printf("%s, ", packages[real_dependencies[j]].name);
+				}
 				printf("</p>");
 
 			}
@@ -331,9 +338,9 @@ void	create_index_page(size_t *index_page, size_t downloaded_packages, t_package
 
 int	main(int argc, char **argv)
 {
+	t_package	*packages;
 	char		*buf = 0;
 	int		fd;
-	t_package	*packages;
 	size_t		package_count = 0;
 	size_t		*index_page;
 	size_t		downloaded_packages;
