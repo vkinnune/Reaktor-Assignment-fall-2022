@@ -30,6 +30,7 @@ char	*reading(int fd)
 			buf = realloc(buf, sizeof(char) * allocated);
 		}
 	}
+	buf[read_bytes + text_size] = 0;
 	return (buf);
 }
 
@@ -88,7 +89,7 @@ void	format_data(char *p, size_t type, t_package *packages)
 			save_p = p;
 			p = strchr(p, '"');
 			i = p - save_p;
-			packages->name = (char *)malloc(sizeof(char) * i);
+			packages->name = (char *)malloc(sizeof(char) * (i + 1));
 			strncpy(packages->name, save_p, i);
 			break;
 		case description:
@@ -96,7 +97,7 @@ void	format_data(char *p, size_t type, t_package *packages)
 			save_p = p;
 			p = strchr(p, '"');
 			i = p - save_p;
-			packages->description = (char *)malloc(sizeof(char) * i);
+			packages->description = (char *)malloc(sizeof(char) * (i + 1));
 			strncpy(packages->description, save_p, i);
 			break;
 		case optional:
@@ -232,6 +233,20 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 	}
 }
 
+void	print_out(size_t package_count, t_package *packages)
+{
+	{ //generate clickable index in alphabetical order
+		printf("<html><style>body { font-family: Arial }</style><body>");
+		for (int i = 0; i != package_count; i++)
+			printf("<h1>%s</h1>", packages[i].name);
+		printf("</body></html>");
+
+	}
+	{ //generate the packages
+
+	}
+}
+
 /*
    Parsing fills this following struct.
    Package struct includes:
@@ -261,12 +276,12 @@ int	main(int argc, char **argv)
 			crash("Error");
 		packages = allocate_packages(buf, &package_count);
 		parsing(buf, &package_count, &packages);
+		print_out(package_count, packages);
+		/*
 		printf("%d\n", package_count);
 		for (int i = 0; i != package_count; i++)
 			printf("%s\n", packages[i].name);
-		/*
 		magic();
-		print_out();
 		*/
 	}
 	else
