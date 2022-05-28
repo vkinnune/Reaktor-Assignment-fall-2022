@@ -237,12 +237,12 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 
 void	print_out(size_t package_count, t_package *packages, size_t downloaded_packages, size_t *index_page)
 {
-	printf("<html><style>body { font-family: Arial; display: flex } div { display: flex; min-width: 10vh } #content { display: flex; flex-wrap: wrap } #sidebar { max-width: 30vh } #text { width: 100% } </style><body>");
+	printf("<html><style> a:active { color: red } a { color: blue } body { font-family: Arial; display: flex } div { display: flex; min-width: 10vh } #content { display: flex; flex-wrap: wrap } #sidebar { max-width: 30vh; position: -webkit-sticky; position: sticky; top: 0; align-self: flex-start; } #text { width: 100%; flex-direction: column } </style><body>");
 	{ //generate clickable index in alphabetical order
 		printf("<div id=\"sidebar\">");
 		printf("<p>");
 		for (int i = 0; i != downloaded_packages; i++)
-			printf("%s ", packages[index_page[i]].name);
+			printf("<a onclick=\"myHighlight(\"%s\")\" href=\"#%s\">%s</a>, ", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].name);
 		printf("</p>");
 		printf("</div>");
 
@@ -250,10 +250,10 @@ void	print_out(size_t package_count, t_package *packages, size_t downloaded_pack
 	{ //generate the packages
 		printf("<div id=\"content\">");
 		for (int i = 0; i != downloaded_packages; i++)
-			printf("<div id=\"text\" id=\"%s\"><h2>%s</h2></div>", packages[index_page[i]].name, packages[index_page[i]].name);
+			printf("<div id=\"text\"><h2 id=\"%s\">%s</h2><p>%s</p></div>", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].description);
 		printf("</div>");
 	}
-	printf("</body></html>");
+	printf("</body><script>function myHighlight(id) {  document.getElementById(id).style.color = \"green\"; }</script></html>");
 }
 
 void	create_index_page(size_t *index_page, size_t downloaded_packages, t_package *packages)
