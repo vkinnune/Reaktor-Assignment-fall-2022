@@ -205,13 +205,15 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 	type = 0;
 	while (*p != 0)
 	{
-		if (!memcmp("[package.extras]", p, 16))
+		if (!memcmp("[[package]]", p, 11))
+			package_index++;
+		else if (!memcmp("[package.extras]", p, 16))
 		{
 			while (*p != 0)
 			{
 				if (!memcmp("\n\n", p, 2))
 					break ;
-				p = parse_extras(p, packages, package_index, package_count);
+				p = parse_extras(p, packages, (package_index - 1), package_count);
 				p++;
 			}
 		}
@@ -223,7 +225,7 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 			{
 				if (*p == '\n')
 					break ;
-				p = parse_dependencies(p, packages, package_index, package_count);
+				p = parse_dependencies(p, packages, (package_index - 1), package_count);
 				p++;
 			}
 		}
@@ -233,17 +235,34 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 	}
 }
 
-void	print_out(size_t package_count, t_package *packages)
+void	print_out(size_t package_count, t_package *packages, size_t downloaded_packages, size_t *index_page)
 {
+	printf("<html><style>body { font-family: Arial; display: flex } div { display: flex; min-width: 10vh } #content { display: flex; flex-wrap: wrap } #sidebar { max-width: 30vh } #text { width: 100% } </style><body>");
 	{ //generate clickable index in alphabetical order
-		printf("<html><style>body { font-family: Arial }</style><body>");
-		for (int i = 0; i != package_count; i++)
-			printf("<h1>%s</h1>", packages[i].name);
-		printf("</body></html>");
+		printf("<div id=\"sidebar\">");
+		printf("<p>");
+		for (int i = 0; i != downloaded_packages; i++)
+			printf("%s ", packages[index_page[i]].name);
+		printf("</p>");
+		printf("</div>");
 
 	}
 	{ //generate the packages
+		printf("<div id=\"content\">");
+		for (int i = 0; i != downloaded_packages; i++)
+			printf("<div id=\"text\" id=\"%s\"><h2>%s</h2></div>", packages[index_page[i]].name, packages[index_page[i]].name);
+		printf("</div>");
+	}
+	printf("</body></html>");
+}
 
+void	create_index_page(size_t *index_page, size_t downloaded_packages, t_package *packages)
+{
+	size_t	i;
+
+	for (i = 0; i != downloaded_packages; i++)
+	{
+		index_page[i] = i;
 	}
 }
 
@@ -267,6 +286,8 @@ int	main(int argc, char **argv)
 	int		fd;
 	t_package	*packages;
 	size_t		package_count = 0;
+	size_t		*index_page;
+	size_t		downloaded_packages;
 
 	if (argc == 2)
 	{
@@ -275,8 +296,11 @@ int	main(int argc, char **argv)
 		if (buf == 0)
 			crash("Error");
 		packages = allocate_packages(buf, &package_count);
+		index_page =  (size_t *)malloc(sizeof(size_t) * package_count);
+		downloaded_packages = package_count;
+		create_index_page(index_page, downloaded_packages, packages);
 		parsing(buf, &package_count, &packages);
-		print_out(package_count, packages);
+		print_out(package_count, packages, downloaded_packages, index_page);
 		/*
 		printf("%d\n", package_count);
 		for (int i = 0; i != package_count; i++)
