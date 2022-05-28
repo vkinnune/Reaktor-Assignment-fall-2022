@@ -16,6 +16,7 @@ char	*reading(int fd)
 	size_t	text_size = 0;
 	size_t	allocated = READ_SIZE;
 	char	*buf = (char *)malloc(sizeof(char) * READ_SIZE);
+
 	while (1)
 	{
 		read_bytes = read(fd, buf + text_size, READ_SIZE);
@@ -38,6 +39,7 @@ t_package	*allocate_packages(char *buf, size_t *package_count)
 {
 	char		*p = buf;
 	size_t		package_counter = 0;
+
 	t_package	*packages = 0;
 	while (*p != 0)
 	{
@@ -55,6 +57,7 @@ char	*parse_package(char *p, size_t *type)
 {
 	char 	cmp[6][15] = {"name", "version", "description", "category", "optional", "python-version"};
 	size_t	i;
+
 	while (*p != 0)
 	{
 		for (i = 0; i != 6; i++)
@@ -82,6 +85,7 @@ void	format_data(char *p, size_t type, t_package *packages)
 {
 	char	*save_p;
 	int	i;
+
 	switch (type)
 	{
 		case name:
@@ -136,6 +140,7 @@ char	*parse_extras(char *p, t_package **packages, size_t package_index, size_t *
 	char	*temp_p;
 	size_t	index;
 	size_t	len;
+
 	p = strchr(p, '"');
 	p++;
 	save_p = p;
@@ -163,6 +168,7 @@ char	*parse_dependencies(char *p, t_package **packages, size_t package_index, si
 	char	*temp_p;
 	size_t	index;
 	size_t	len;
+
 	save_p = p;
 	temp_p = strchr(p, '\n');
 	p = memchr(save_p, ' ', temp_p - save_p);
@@ -187,6 +193,7 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 	char	*p = buf;
 	size_t	package_index = 0;
 	size_t	type = 0;
+
 	while (*p != 0)
 	{
 		if (!memcmp("[[package]]", p, 11))
@@ -235,25 +242,67 @@ void	parsing(char *buf, size_t *package_count, t_package **packages)
 	}
 }
 
+size_t	clear_duplicates(size_t **real_dependencies, size_t *dependencies, size_t *extras, size_t dependencies_size, size_t extras_size)
+{
+	int	j;
+	size_t	real_size = dependencies_size;
+
+	*real_dependencies = (size_t *)malloc(sizeof(size_t) * (dependencies_size + extras_size));
+	memcpy(*real_dependencies, dependencies, sizeof(size_t) * dependencies_size);
+	for (int i = 0; i != extras_size; i++)
+	{
+		for (j = 0; j != real_size; j++)
+			if (extras[i] == (*real_dependencies)[j])
+				break ;
+		if (j == real_size)
+		{
+			(*real_dependencies)[real_size] = extras[i];
+			real_size++;
+		}
+	}
+	return (real_size);
+}
+
 void	print_out(size_t package_count, t_package *packages, size_t downloaded_packages, size_t *index_page)
 {
-	printf("<html><style> a:active { color: red } a { color: blue } body { font-family: Arial; display: flex } div { display: flex; min-width: 10vh } #content { display: flex; flex-wrap: wrap } #sidebar { max-width: 30vh; position: -webkit-sticky; position: sticky; top: 0; align-self: flex-start; } #text { width: 100%; flex-direction: column } </style><body>");
+	printf("<html><style> a:active { color: red } a { color: blue } body { font-family: Arial; display: flex } div { display: flex; min-width: 10vh } #content { display: flex; flex-wrap: wrap } #sidebar { max-height: 100vh; overflow-y: auto; margin: 10px 10px 10px 10px; min-width: 35vh; position: -webkit-sticky; position: sticky; top: 0; align-self: flex-start; } #text { padding-bottom: 10px; border-bottom: 1px solid black; width: 100%; flex-direction: column } h2 { } p { margin: initial; } </style><body>");
 	{ //generate clickable index in alphabetical order
 		printf("<div id=\"sidebar\">");
 		printf("<p>");
 		for (int i = 0; i != downloaded_packages; i++)
-			printf("<a onclick=\"myHighlight(\"%s\")\" href=\"#%s\">%s</a>, ", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].name);
-		printf("</p>");
-		printf("</div>");
+		{
+			printf("<a href=\"#%s\">%s</a>", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].name);
+			if (i != downloaded_packages - 1)
+				printf(", ");
 
+		}
+		printf("</p></div>");
 	}
 	{ //generate the packages
 		printf("<div id=\"content\">");
 		for (int i = 0; i != downloaded_packages; i++)
-			printf("<div id=\"text\"><h2 id=\"%s\">%s</h2><p>%s</p></div>", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].description);
+		{
+			size_t *dependencies = packages[index_page[i]].dependencies;
+			size_t *extras = packages[index_page[i]].extras;
+			size_t dependencies_size = packages[index_page[i]].dependencies_size;
+			size_t extras_size = packages[index_page[i]].extras_size;
+			size_t *real_dependencies;
+			size_t real_size;
+			printf("<div id=\"text\"><h2 id=\"%s\">%s</h2><p>%s</p>", packages[index_page[i]].name, packages[index_page[i]].name, packages[index_page[i]].description);
+			real_size = clear_duplicates(&real_dependencies, dependencies, extras, dependencies_size, extras_size);
+			if (real_size > 0)
+			{
+				printf("<h4>Dependencies</h4><p>");
+				for (int j = 0; j != real_size; j++)
+					printf("%s, ", packages[real_dependencies[j]].name);
+				printf("</p>");
+
+			}
+			printf("</div>");
+		}
 		printf("</div>");
 	}
-	printf("</body><script>function myHighlight(id) {  document.getElementById(id).style.color = \"green\"; }</script></html>");
+	printf("</body></html>");
 }
 
 void	create_index_page(size_t *index_page, size_t downloaded_packages, t_package *packages)
