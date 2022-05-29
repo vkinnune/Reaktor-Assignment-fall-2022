@@ -16,7 +16,7 @@ typedef struct s_package {
 	size_t	extras_size;
 }	t_package;
 ```
-Firstly I calculated the amount of downloaded packages. A definition of a downloaded package is that there is a *package* section. With that I allocated correct amount of data. Then I parsed the *package* sections and filled the data in the structs. After that I parsed all the *package.dependencies* and *package.extras* and filled the integer arrays. I use integer arrays because as I read the packages I just add the new package to the struct array and increase the index. So I can just store of the indexes of the struct array in the int arrays. If there was a new package that was not already found in the struct array I just allocate more memory and increase the index. I know the downloaded package amount so everything above that are optional packages. 
+Firstly, I calculated the amount of downloaded packages. A definition of a downloaded package is that there is a *package* section. With that I allocated the correct amount of data. Then I parsed the *package* sections and filled in the data in the structs. After that I parsed all the *package.dependencies* and *package.extras* and filled the integer arrays. I use integer arrays because as I read the packages I just add the new package to the struct array and increase the index. So I can just store the indexes of the struct array in the int arrays. If there was a new package that was not already found in the struct array, I would just allocate more memory and increase the index. I know the downloaded package amount, so everything above that are optional packages. 
 
 ## Usage
 Run `make`.
