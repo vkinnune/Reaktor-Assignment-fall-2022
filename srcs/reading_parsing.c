@@ -89,6 +89,7 @@ void	format_data(char *p, size_t type, t_package *packages)
 			i = p - save_p;
 			packages->name = (char *)malloc(sizeof(char) * (i + 1));
 			strncpy(packages->name, save_p, i);
+			packages->name[i] = 0;
 			break;
 		case description:
 			p++;
@@ -97,6 +98,7 @@ void	format_data(char *p, size_t type, t_package *packages)
 			i = p - save_p;
 			packages->description = (char *)malloc(sizeof(char) * (i + 1));
 			strncpy(packages->description, save_p, i);
+			packages->description[i] = 0;
 			break;
 		case optional:
 			if (!memcmp("false", p, 5))
