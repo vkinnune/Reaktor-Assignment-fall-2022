@@ -6,7 +6,7 @@ The program has two parts. Parsing the input and printing out the output. Given 
 
 I stored the data about a single package in the following struct and made an array of structs.
 ```
-typ`edef struct s_package {
+typedef struct s_package {
 	char	*name;
 	char	*description;
 	bool	optional;
