@@ -4,7 +4,7 @@
 
 This project was a medium difficulty parsing problem. Our task was to do a small program that takes a poetry.lock file as input and showcases some key information in an HTML user interface.
 
-The program has two parts. Parsing the input and printing out the output. Given I only had two days to complete the project, for the parsing, I made a simplification that the package order was already alphabetically ordered.
+The program has two parts. Parsing the input and printing out the output. Given I only had two days to complete the project, for the parsing, I made some simplifications like that the package order was already alphabetically sorted and that an optional package is a package not installed. At the time writing the program I didn't see the need to work on these things because I assumed the data was already this way but these are things I would look at in the future.
 
 I stored the data about a single package in the following struct and made an array of structs.
 ```
