@@ -6,6 +6,15 @@ void	crash(char *str)
     exit(-1);
 }
 
+/*
+   When parsing I could put the dependencies and extras in the same array and when parsing clear out the duplicates
+   without need for checking if there is duplicates here but when I started coding this I thinked
+   it was logical for the future to keep it seperate.
+
+   Here I cloud also turn the dependencies in to alphabetical order because I just return an int array with indexes.
+   Same thing in get_reverse_dependencies() function.
+   */
+
 size_t	clear_duplicates(size_t **real_dependencies, size_t *dependencies, size_t *extras, size_t dependencies_size, size_t extras_size)
 {
 	size_t	j;
@@ -53,12 +62,6 @@ size_t	get_reverse_dependencies(size_t **reverse_dependencies, t_package *packag
 			if (packages[i].dependencies[j] == current_index)
 				reverse_size = add_reverse_dependencies(i, reverse_dependencies, reverse_size);
 	}
-	for (size_t i = 0; i != downloaded_packages; i++)
-	{
-		for (size_t j = 0; j != packages[i].extras_size; j++)
-			if (packages[i].extras[j] == current_index)
-				reverse_size = add_reverse_dependencies(i, reverse_dependencies, reverse_size);
-	}
 	return (reverse_size);
 }
 
@@ -97,9 +100,11 @@ void	print_out(t_package *packages, size_t downloaded_packages, size_t *index_pa
 				for (size_t j = 0; j != real_size; j++)
 				{
 					if (real_dependencies[j] < downloaded_packages)
-						printf("<a href=\"#%s\">%s</a>, ", packages[real_dependencies[j]].name, packages[real_dependencies[j]].name);
+						printf("<a href=\"#%s\">%s</a>", packages[real_dependencies[j]].name, packages[real_dependencies[j]].name);
 					else
-						printf("%s, ", packages[real_dependencies[j]].name);
+						printf("%s", packages[real_dependencies[j]].name);
+					if (j != real_size - 1)
+						printf(", ");
 				}
 				printf("</p>");
 			}
@@ -108,7 +113,11 @@ void	print_out(t_package *packages, size_t downloaded_packages, size_t *index_pa
 			{
 				printf("<h4>Reverse Dependencies</h4><p>");
 				for (size_t j = 0; j != reverse_size; j++)
-					printf("<a href=\"#%s\">%s</a>, ", packages[reverse_dependencies[j]].name, packages[reverse_dependencies[j]].name);
+				{
+					printf("<a href=\"#%s\">%s</a>", packages[reverse_dependencies[j]].name, packages[reverse_dependencies[j]].name);
+					if (j != reverse_size - 1)
+						printf(", ");
+				}
 				printf("</p>");
 
 			}
@@ -118,6 +127,11 @@ void	print_out(t_package *packages, size_t downloaded_packages, size_t *index_pa
 	}
 	printf("</body></html>");
 }
+
+/*
+   If I need to change the order or apply checking if the
+   index page is alphabetically ordered I can do it in this function.
+   */
 
 void	create_index_page(size_t *index_page, size_t downloaded_packages)
 {
