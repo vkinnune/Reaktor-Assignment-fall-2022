@@ -28,6 +28,7 @@ Open the html on your web browser.
 The solution is hosted on my Heroku: https://reaktor-assignment-fall-2022.herokuapp.com/
 
 ## Full Assignment
+Link: https://www.reaktor.com/assignment-fall-2022-developers/
 Some Python projects use Poetry to manage dependencies. Poetry uses a file called poetry.lock to record which packages a project needs and which dependencies those packages have. Here is an example of such a file.
 
 Write a small program in your language of choice that accepts a poetry.lock file as input and exposes some key information about the packages via an HTML user interface. The program should provide the following features:
