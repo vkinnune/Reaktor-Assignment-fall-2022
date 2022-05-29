@@ -34,12 +34,12 @@ Write a small program in your language of choice that accepts a poetry.lock file
 
     The index page lists installed packages in alphabetical order with package names as links
     When following each link, you arrive at information about a single package. The following information should be included:
-        Name
-        Description
-        The names of the packages the current package depends on (i.e. dependencies)
-        The names of the packages that depend on the current package (i.e. reverse dependencies)
-        The dependencies and reverse dependencies should be clickable and the user can navigate the package structure by clicking from package to package
-        Include all optional dependencies as well, but make clickable only those that are installed
+        - Name
+        - Description
+        - The names of the packages the current package depends on (i.e. dependencies)
+        - The names of the packages that depend on the current package (i.e. reverse dependencies)
+        - The dependencies and reverse dependencies should be clickable and the user can navigate the package structure by clicking from package to package
+        - Include all optional dependencies as well, but make clickable only those that are installed
 
 Some things to keep in mind:
 
@@ -47,9 +47,9 @@ Some things to keep in mind:
     We also appreciate solutions that have a good UX. However, we don’t expect you to come up with a stunning visual appearance. We’re more interested in usability and performance
     We would like to see you implement the parsing part of the assignment from scratch. poetry.lock is a TOML file, but please, do not use any ready-made 3rd party parsers in your solution. At the same time, it is enough to only parse what is needed for the assignment
     Make the following simplifications:
-        Ignore package version numbers
-        Ignore the dev dependency flag, i.e. consider dev dependencies to be just regular dependencies
-        Focus only on the three following sections of the file: package, package.dependencies, package.extras
+        - Ignore package version numbers
+        - Ignore the dev dependency flag, i.e. consider dev dependencies to be just regular dependencies
+        - Focus only on the three following sections of the file: package, package.dependencies, package.extras
 
     Optional dependencies can be found under packages.extras or under packages.dependencies with the flag optional set to true. Look into both places!
     A good sample input file is the poetry.lock of Poetry itself. It can be found here.
